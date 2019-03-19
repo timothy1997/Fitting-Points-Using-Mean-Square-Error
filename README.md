@@ -19,6 +19,7 @@ Improvements to this program will come soon. I hope that this programn is of som
 Sample Usages:
 
 python fit.py -i data.txt -d 10
+
 python fit.py --ifile datatest.txt --degree 30
 
 If you have any questions for concerns, feel free to email me.

@@ -21,14 +21,14 @@ def main():
     error = (1/float(ew.shape[0])) * np.linalg.norm(ew)**2
 
     x24 = np.arange(0,8) # Create the function
-    wNew = np.squeeze(np.asarray(w))
+    wNew = np.squeeze(np.asarray(yTilde))
     f1 = (x24**0)*wNew[0]
     for value in range(1, d+1):
         f1 += (x24**value)*wNew[value]
 
     print("Weight Vector: \n" + str(w)) # Print data to console:
     print("y values: \n" + str(np.asmatrix(y)))
-    print("y tilde values: \n" + str(a*w))
+    print("y tilde values: \n" + str(yTilde))
     print("Average squared error: " + str(error))
 
     plt.plot(x24, f1, color="red")  # Plot the function and the points, then show

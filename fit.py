@@ -8,47 +8,49 @@ x = []
 y = []
 
 def main():
-
     d = parseArguments(sys.argv[1:])    # Get the degree and the data set
 
-    if d == -1:
-        d = len(x) - 1  # The degree of the polynomial we will use to fit the points
-    p = d+1  # The number of points we have
-    w = np.random.rand(1, d+1)    # Generate random weights for the vector
-
-    a = np.empty([p, p]) # Generate matrix a
-    for i in range(0,p):
-        for j in range(0,p):
-            a[i][j] = x[i]**j
-
-    a = np.asmatrix(a)  # Convert everything to matrices, so they're easier to work with
+    w = np.random.rand(1, len(x))   # Generate random weights for the vector
+    for i in range(d+1, len(x)):    # I feel like I can get rid of this, but I will wait until later to verify
+        w[0][i] = 0 # Set values outside our degree equal to 0
     w = np.asmatrix(w)
-    yMatrix = np.asmatrix(y)
-    y2 = a*w.transpose()
+    a = np.asmatrix(generateMatrix(x, len(x)-1))   # Generate the a matrix
 
-    w = np.linalg.inv(a.transpose()*a) # Calculate the minimized weight vector
-    w = w*a.transpose()
-    w = w*yMatrix.transpose()
+    w = np.linalg.inv(a.transpose()*a)*a.transpose() * np.asmatrix(y).transpose()
+    for i in range(d+1, len(x)):
+        w[i][0] = 0 # Set values outside our degree equal to 0
 
-    x24 = np.arange(0,10) # Create the function
+    yTilde = a*w    # Calculate the values and the error
+    ew = yTilde - np.asmatrix(y).transpose()
+    error = (1/float(ew.shape[0])) * np.linalg.norm(ew)**2
+
+    x24 = np.arange(0,8) # Create the function
     wNew = np.squeeze(np.asarray(w))
     f1 = (x24**0)*wNew[0]
     for value in range(1, d+1):
         f1 += (x24**value)*wNew[value]
 
-    ew = (a*w) - yMatrix # Calculate the average square error over all the points
-
     print("Weight Vector: \n" + str(w)) # Print data to console:
-    print("y values: \n" + str(yMatrix))
+    print("y values: \n" + str(np.asmatrix(y)))
     print("y tilde values: \n" + str(a*w))
-    print("Average squared error: " + str((np.linalg.norm(ew)**2)*(1/p)))
+    print("Average squared error: " + str(error))
 
     plt.plot(x24, f1, color="red")  # Plot the function and the points, then show
-    plt.plot(xOrig, yOrig, 'ro')
+    plt.plot(x, y, 'ro')
     plt.show()
+
+def generateMatrix(points, degree):
+    p = degree+1
+    a = np.empty([len(points), degree+1]) # Generate matrix a
+    for i in range(0,len(points)):
+        for j in range(0,p):
+            a[i][j] = points[i]**j
+    return a
 
 def parseArguments(argv):
     d = -1
+    global y
+    global x
     try:
         opts, args = getopt.getopt(argv, "hi:d:", ["ifile", "degree="])
     except getopt.GetoptError:
@@ -64,11 +66,14 @@ def parseArguments(argv):
             with open(arg) as f: # Read all the data points
                 for line in f:
                     # This ternary operator below just assigns to each x value a y value
-                    yOrig.append(float(line)) if len(xOrig) > len(yOrig) else xOrig.append(float(line))
-    global y
-    global x
-    y = yOrig[0:d+1]
-    x = xOrig[0:d+1]
+                    y.append(float(line)) if len(x) > len(y) else x.append(float(line))
+    if len(x) != len(y):
+        print("Must include a data file that has a y for every x.")
+        sys.exit(2)
+    elif len(x) == 0:
+        print("Must include a data file with data in it.")
+        sys.exit(2)
+
     return d
 
 if __name__ == "__main__":

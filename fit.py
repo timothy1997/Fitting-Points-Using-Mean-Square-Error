@@ -2,23 +2,19 @@ import sys, getopt
 import numpy as np
 import matplotlib.pyplot as plt #import the Python Matplotlib sub-module for graph plotting pyplot
 
-xOrig = []
-yOrig = []
 x = []
 y = []
 
 def main():
     d = parseArguments(sys.argv[1:])    # Get the degree and the data set
 
-    w = np.random.rand(1, len(x))   # Generate random weights for the vector
-    for i in range(d+1, len(x)):    # I feel like I can get rid of this, but I will wait until later to verify
-        w[0][i] = 0 # Set values outside our degree equal to 0
-    w = np.asmatrix(w)
     a = np.asmatrix(generateMatrix(x, len(x)-1))   # Generate the a matrix
 
-    w = np.linalg.inv(a.transpose()*a)*a.transpose() * np.asmatrix(y).transpose()
+    w = np.linalg.inv(a.transpose()*a)*a.transpose() * np.asmatrix(y).transpose()   # Get the minimized weights
+    # If our degree is more than 1 less our number of points, we don't want to include some values
+    # in our matrix, because they will only be used for higher degrees
     for i in range(d+1, len(x)):
-        w[i][0] = 0 # Set values outside our degree equal to 0
+        w[i][0] = 0
 
     yTilde = a*w    # Calculate the values and the error
     ew = yTilde - np.asmatrix(y).transpose()
@@ -67,11 +63,15 @@ def parseArguments(argv):
                 for line in f:
                     # This ternary operator below just assigns to each x value a y value
                     y.append(float(line)) if len(x) > len(y) else x.append(float(line))
-    if len(x) != len(y):
+
+    if len(x) != len(y):    # Check for some conditions that must exist for our algorithm to run
         print("Must include a data file that has a y for every x.")
         sys.exit(2)
     elif len(x) == 0:
         print("Must include a data file with data in it.")
+        sys.exit(2)
+    elif len(x) <= d:
+        print("The number of points given must be greater than the degree.")
         sys.exit(2)
 
     return d
